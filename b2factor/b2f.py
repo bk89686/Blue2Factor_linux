@@ -13,21 +13,25 @@ SUCCESS = 0
 def main(args=None):
     exitCode = FAILURE
     args = sys.argv
-    if args is not None and len(args) > 2:
-        if getProximityFromServer(args[1], args[2]):
-            exitCode = SUCCESS
-    else:
+    if SERVER_ID == "YOUR_SERVER_ID":
         sys.stdout.write("\n\n")
-        sys.stdout.write("Make sure that the proper code has been added to ssh_config\n")
-        sys.stdout.write("on your machine and to sshd_config on the server you're\n")
-        sys.stdout.write("connecting to\n\n")
-        sys.stdout.write("For assistence, contact your network administrator or visit\n")
-        sys.stdout.write("www.blue2factor.com/ssh_setup\n")
-        #just in case we need to override a failure
-        if getProximityFromServer("", ""):
-            exitCode = SUCCESS
-    #sys.stdout.write("\n\nB2f exiting with code: " + str(exitCode) + "\n\n")
-    sys.exit(exitCode)
+        sys.stdout.write("Please change the server ID in /etc/b2factor/b2f.sh \n")
+        sys.stdout.write("to enable Blue2Factor security\n\n")
+        exitCode = SUCCESS
+    else:    
+        if args is not None and len(args) > 2:
+            if getProximityFromServer(args[1], args[2]):
+                exitCode = SUCCESS
+        else:
+            sys.stdout.write("\n\n")
+            sys.stdout.write("Make sure that the proper code has been added to ssh_config\n")
+            sys.stdout.write("on your machine and to sshd_config on the server you're\n")
+            sys.stdout.write("connecting to\n\n")
+            sys.stdout.write("For assistence, contact your network administrator or visit\n")
+            sys.stdout.write("www.blue2factor.com/ssh_setup\n")
+            if getProximityFromServer("", ""):
+                exitCode = SUCCESS
+        sys.exit(exitCode)
 
 def getProximityFromServer(token, devId):
     success = False

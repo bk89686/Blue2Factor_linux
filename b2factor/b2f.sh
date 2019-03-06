@@ -16,7 +16,7 @@ if [ $outcome -eq 0 ]
 then
     echo "Blue2Factor succeeded"
 else
-    echo "This server is protected by Blue2Factor. Please run your ssh client through the Blue2Factor app and make sure you have another registered device nearby."
+    echo "This server is protected by Blue2Factor. Please run your ssh client through the Blue2Factor application and make sure you have another registered device nearby."
 fi
 
 if [ "${SSH_ORIGINAL_COMMAND}" = "" ]; then
