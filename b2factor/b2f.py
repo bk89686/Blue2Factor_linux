@@ -6,7 +6,7 @@ import urllib
 import urllib2
 
 
-SERVER_ID="CHANGE_ME!"
+SERVER_ID="YOUR_SERVER_ID"
 endpoint = "https://secure.blue2factor.com/b2f-prox"
 FAILURE = 1
 SUCCESS = 0
