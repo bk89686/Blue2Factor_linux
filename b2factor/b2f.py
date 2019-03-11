@@ -23,7 +23,7 @@ def main(args=None):
             if getProximityFromServer(args[1], args[2]):
                 exitCode = SUCCESS
         else:
-            sys.stdout.write("\n\n")
+            sys.stdout.write("Blue2Factor authentication failed.\n\n")
             sys.stdout.write("Make sure that the proper code has been added to ssh_config\n")
             sys.stdout.write("on your machine and to sshd_config on the server you're\n")
             sys.stdout.write("connecting to\n\n")

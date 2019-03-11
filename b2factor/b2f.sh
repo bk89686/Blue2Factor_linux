@@ -1,12 +1,6 @@
-#! /bin/sh
+#! /bin/bash
 
-echo "Checking Blue2Factor"
-
-if [ "$(echo ${SSH_ORIGINAL_COMMAND} | grep '^scp')" ]; then
-    echo "this is an scp"
-    exec ${SSH_ORIGINAL_COMMAND}
-fi
-if [ -f "/etc/b2factor/b2f.pyc" ]; then 
+if [ -f "/etc/b2factor/b2f.pyc" ]; then
     python /etc/b2factor/b2f.pyc $B2FID $B2F_DEV_ID
 else
     python /etc/b2factor/b2f.py $B2FID $B2F_DEV_ID
@@ -14,14 +8,16 @@ fi
 outcome=$?
 if [ $outcome -eq 0 ]
 then
-    echo "Blue2Factor succeeded"
+    if [ "$(echo ${SSH_ORIGINAL_COMMAND} | grep '^scp ')" ]; then
+        ${SSH_ORIGINAL_COMMAND}
+        exit 0
+    else
+        /bin/bash
+    fi
 else
-    echo "This server is protected by Blue2Factor. Please run your ssh client through the Blue2Factor application and make sure you have another registered device nearby."
+    echo -e "\n\nThis server is protected by Blue2Factor. Please run your ssh"
+    echo -e "client through the Blue2Factor app and make sure you have "
+    echo -e "another registered device nearby.\n\n\n"
 fi
 
-if [ "${SSH_ORIGINAL_COMMAND}" = "" ]; then
-    /bin/bash
-else
-    exec ${SSH_ORIGINAL_COMMAND}
-fi
 exit 0
