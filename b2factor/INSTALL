@@ -1,0 +1,145 @@
+#! /bin/bash
+
+#make sure the user has root priveleges
+if [ $EUID != 0 ]
+then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
+. b2f.config
+if [ "$1" == "-u" ]
+then
+    . $BASE_INSTALL_DIR/b2factor/b2f.config
+    echo ""
+    echo "Uninstalling"
+    echo "running $BASE_INSTALL_DIR/b2factor/b2f.pyc dele$SERVER_ID"
+    python $BASE_INSTALL_DIR/b2factor/b2f.pyc "dele$SERVER_ID"
+    outcome=$?
+
+    sed -i 's/AcceptEnv B2FID/ /g' $SSH_CONFIG
+    sed -i 's/AcceptEnv B2F_DEV_ID/ /g' $SSH_CONFIG
+    sed -i 's|ForceCommand '$BASE_INSTALL_DIR'/b2factor/b2f.sh| |g' $SSH_CONFIG
+    chmod -R 777 $BASE_INSTALL_DIR/b2factor
+    rm -r $BASE_INSTALL_DIR/b2factor
+    echo ""
+    echo "restarting SSH"
+    $SSH_PATH restart
+    echo "Blue2Factor has been uninstalled."
+    exit 0
+fi
+
+#check for python
+if command -v python &>/dev/null; then
+    echo "Python is already installed"
+    echo ""
+else
+    echo "Before installing Blue2Factor you must install Python."
+    exit 1
+fi
+
+#check for previous install
+if grep -Fq "AcceptEnv B2F_DEV_ID" $SSH_CONFIG
+then
+    echo "It looks you've already installed Blue2Factor.  If you'd like to "
+    echo "uninstall it, please run the INSTALL file with the argument -u."
+    exit 1
+fi
+
+#if grep -Fq "YOUR_SERVER_ID" $BASE_INSTALL_DIR/b2factor/b2f.config
+#then
+#    echo "It looks like a prior installation did not complete. Please run INSTALL -u"
+#    echo "before proceeding."
+#    exit 1
+#else
+#    echo ""
+#    echo "New Blue2Factor installation"
+#fi
+
+#check the ssh files are correct
+if [ -f $SSH_CONFIG ]
+then
+    echo "Configuration file found"
+else
+    echo "You need to update the SSH_CONFIG value in your b2f.config file."
+fi
+
+
+if [ -f $SSH_PATH ]
+then
+    echo "ssh found"
+else
+    echo "You need to update the SSH_Path value in your b2f.config file."
+fi
+
+. b2f.config
+
+#create the directories and move the necessary files
+echo "Creating directories..."
+mkdir -p $BASE_INSTALL_DIR/b2factor/keys/
+cp b2f.pyc $BASE_INSTALL_DIR/b2factor/
+cp b2f.config $BASE_INSTALL_DIR/b2factor/
+cp INSTALL $BASE_INSTALL_DIR/b2factor/
+
+chmod -R 755 $BASE_INSTALL_DIR/b2factor
+
+#get a uuid and write it to the config file
+THIS_UUID=$(uuidgen)
+THIS_UUID=${THIS_UUID^^}
+
+echo "MachineID: $THIS_UUID"
+
+python $BASE_INSTALL_DIR/b2factor/b2f.pyc "inst$THIS_UUID"
+outcome=$?
+echo "outcome: $outcome"
+if [ $outcome -eq 0 ]
+then
+    #write the SERVER_ID
+    echo ""
+    echo "Configuring Blue2Factor..."
+    sed -i "s/YOUR_SERVER_ID/$THIS_UUID/g" $BASE_INSTALL_DIR/b2factor/b2f.config
+    sed -i 's/THIS IS UPDATED DURING INSTALLATION/THIS WILL BREAK STUFF/g' $BASE_INSTALL_DIR/b2factor/b2f.config
+
+    #give the user a code to enter in the admin console
+    echo ""
+    echo ""
+    echo " Please sign into your company's admin console at "
+    echo " https://secure.blue2factor.com/company"
+    echo ""
+    echo " In the console click the Add Server button. When "
+    echo " prompted, enter a name for this server and the code"
+    echo " shown below. When you've completed this, press Return."
+    echo ""
+    echo "CODE:"
+    echo $THIS_UUID | cut -c1-8
+    echo ""
+    read varname
+
+    #Validate that the code has been entered
+    python $BASE_INSTALL_DIR/b2factor/b2f.pyc "vali$THIS_UUID"
+    success=$?
+    if [ $success -eq 0 ]
+    then
+        #update the ssh config
+        echo ""
+        echo "Updating your ssh configuration..."
+        sed -i 's|Allow client to pass locale environment variables|Allow client to pass locale environment variables\
+        AcceptEnv B2FID\
+        AcceptEnv B2F_DEV_ID\
+        ForceCommand '$BASE_INSTALL_DIR'/b2factor/b2f.sh|g' $SSH_CONFIG
+
+        #restart ssh
+        echo "Restarting SSH ..."
+        $SSH_PATH restart
+        chmod -R 500 $BASE_INSTALL_DIR/b2factor/keys
+        echo ""
+        echo "Blue2Factor installation complete"
+        echo ""
+    else
+        echo "we could not validate that you entered the code into you Blue2Factor admin console."
+        sed -i "s/$THIS_UUID/YOUR_SERVER_ID/g" $BASE_INSTALL_DIR/b2factor/b2f.config
+        exit 1
+    fi
+fi
+exit 0
+
