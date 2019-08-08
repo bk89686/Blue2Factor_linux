@@ -1,0 +1,26 @@
+INSTALLING BLUE2FACTOR
+
+Prior to installing Blue2Factor on a server, make sure you have signed up for
+Blue2Factor, and have it installed on at least one person's devices. Failure to
+do so could cause you to get locked out of the server you are installing it on.
+
+
+To perform the installation, run the INSTALL program with root privileges
+(e.g. sudo ./INSTALL) on the server you want to protect.
+
+
+After starting the INSTALL program, go to your Blue2Factor admin page at
+https://secure.blue2factor.com/company (on a different machine is okay) and
+click 'Add Server.'  You will be asked to provide a server Name and a Server
+ID. The name is up to you. The Server ID is a code you will be provided while
+the INSTALL is running.
+
+
+The INSTALL program will pause and give you a code.  Enter the code in Server
+ID text box that is part of the the 'Add Server' popup on the company page.
+Select 'OK' on the popup. Following that, go back to the INSTALL window and
+click Return to complete the installation.
+
+
+For assistance, please contact help@blue2factor.com, or go to
+https://www.blue2factor.com/contactUs.
